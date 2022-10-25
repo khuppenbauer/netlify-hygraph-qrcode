@@ -1,0 +1,1 @@
+# netlify-hygraph-qrcode
