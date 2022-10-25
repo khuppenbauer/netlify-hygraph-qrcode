@@ -57,10 +57,6 @@ typings/
 # react
 build
 
-# gatsby files
-.cache/
-public
-
 # graphcms files
 graphcms-fragments
 
