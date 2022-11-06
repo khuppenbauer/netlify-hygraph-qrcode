@@ -5,6 +5,17 @@ module.exports = {
     'no-unused-vars': 0,
     'no-underscore-dangle': 0,
     'no-param-reassign': 0,
+    'max-len': [
+      'error',
+      {
+        "code": 120,
+        "tabWidth": 2,
+        "ignoreComments": true,
+        "ignoreUrls": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true
+      }
+    ]
   },
   parser: '@babel/eslint-parser',
   parserOptions: {
