@@ -9,6 +9,7 @@ const fontSizes = [
 ];
 const margin = 50;
 const logoMargin = 20;
+const canvasWidth = 600;
 
 const rgb2hex = (rgba) => {
   const { r, g, b } = rgba;
@@ -16,15 +17,6 @@ const rgb2hex = (rgba) => {
   const gHex = g.toString(16).padStart(2, '0');
   const bHex = b.toString(16).padStart(2, '0');
   return `#${rHex}${gHex}${bHex}`;
-};
-
-const download = (name) => {
-  const img = document.getElementById('qrCodeImage');
-  const link = document.createElement('a');
-  link.download = name;
-  link.href = img.src;
-  document.body.appendChild(link);
-  link.click();
 };
 
 const parseText = (width, text) => {
@@ -193,13 +185,42 @@ const addFrame = (ctx, frame, frameColorHex, width, height) => {
     ctx.fillStyle = backgroundColorHex;
   }
   if (style) {
-    const radius = style === 'square' ? 0 : 15;
+    const radius = style === 'square' ? 0 : 20;
     ctx.strokeStyle = frameColorHex;
     ctx.lineWidth = 5.0;
     addRoundRect(ctx, frameLeft, frameTop, frameWidth, frameHeight, backgroundColor, radius);
   } else {
     ctx.fillRect(0, 0, width, height);
   }
+};
+
+const createImage = (text, darkColorHex, lightColorHex, width, frame, logo) => {
+  const innerSize = frame ? width - margin * 2 : width;
+  const height = frame && frame.text ? calculateHeight(innerSize, frame.text) : width;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  if (frame) {
+    const frameColor = frame.color || { rgba: { r: 0, g: 0, b: 0 } };
+    const frameColorHex = rgb2hex(frameColor.rgba);
+    addFrame(ctx, frame, frameColorHex, width, height);
+    const framePosition = frame.position || 'bottom';
+    if (frame.text) {
+      addText(ctx, framePosition, width, innerSize, frame, frameColorHex);
+    }
+  }
+
+  addQrCode(ctx, text, darkColorHex, lightColorHex, innerSize, frame, width, height, logo);
+  return canvas;
+};
+
+const download = (slug, text, darkColorHex, lightColorHex, width, frame, logo) => {
+  const img = createImage(text, darkColorHex, lightColorHex, width, frame, logo);
+  const link = document.createElement('a');
+  link.download = `${slug}.png`;
+  link.href = img.toDataURL();
+  document.body.appendChild(link);
+  link.click();
 };
 
 const QrCodePreview = () => {
@@ -255,34 +276,17 @@ const QrCodePreview = () => {
     const darkColor = qrCode.darkColor || { rgba: { r: 0, g: 0, b: 0 } };
     const lightColorHex = rgb2hex(lightColor.rgba);
     const darkColorHex = rgb2hex(darkColor.rgba);
-    const { frame, logo, width } = qrCode;
-    const innerSize = frame ? width - margin * 2 : width;
-    const height = frame && frame.text ? calculateHeight(innerSize, frame.text) : width;
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-
-    if (frame) {
-      const frameColor = frame.color || { rgba: { r: 0, g: 0, b: 0 } };
-      const frameColorHex = rgb2hex(frameColor.rgba);
-      addFrame(ctx, frame, frameColorHex, width, height);
-      const framePosition = frame.position || 'bottom';
-      if (frame.text) {
-        addText(ctx, framePosition, width, innerSize, frame, frameColorHex);
-      }
-    }
-
-    addQrCode(ctx, text, darkColorHex, lightColorHex, innerSize, frame, width, height, logo);
-
-    const img = document.getElementById('qrCodeImage');
-    img.src = canvas.toDataURL();
+    const { frame, logo } = qrCode;
+    const canvas = createImage(text, darkColorHex, lightColorHex, canvasWidth, frame, logo);
+    const width = qrCode.width || canvasWidth;
+    return (
+      <>
+        <img id="qrCodeImage" width="200" src={canvas.toDataURL()} />
+        <button onClick={() => download(slug, text, darkColorHex, lightColorHex, width, frame, logo)}>Download</button>
+      </>
+    );
   }
-
-  return (
-    <>
-      <img id="qrCodeImage" width="200" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
-      <button onClick={() => download(`${slug}.png`)}>Download</button>
-    </>
-  );
+  return null;
 };
 
 const declaration = {
