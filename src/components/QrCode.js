@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Wrapper, useFormSidebarExtension } from '@graphcms/uix-react-sdk';
 import QRCode from 'qrcode';
+import axios from 'axios';
 import { createCanvas } from 'canvas';
 import './qrcode.css';
+
+const apiUrl = process.env.REACT_APP_HYGRAPH_API_URL;
+const token = process.env.REACT_APP_HYGRAPH_API_TOKEN;
 
 const fontSizes = [
   46, 48, 44, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0,
@@ -223,9 +227,26 @@ const download = (slug, text, darkColorHex, lightColorHex, width, frame, logo) =
   link.click();
 };
 
+const upload = (slug, pageId, text, darkColorHex, lightColorHex, width, frame, logo) => {
+  const img = createImage(text, darkColorHex, lightColorHex, width, frame, logo);
+  img.toBlob((blob) => {
+    const formData = new FormData();
+    formData.append('fileUpload', blob, `${slug}.png`);
+    const res = axios({
+      method: 'post',
+      url: `${apiUrl}/upload`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: formData,
+    });
+  });
+};
+
 const QrCodePreview = () => {
   const {
     extension,
+    entry: { id: pageId },
     form: { getFieldState, subscribeToFieldState },
   } = useFormSidebarExtension();
 
@@ -282,7 +303,16 @@ const QrCodePreview = () => {
     return (
       <>
         <img id="qrCodeImage" width="200" src={canvas.toDataURL()} />
-        <button onClick={() => download(slug, text, darkColorHex, lightColorHex, width, frame, logo)}>Download</button>
+        <button
+          onClick={() => download(slug, text, darkColorHex, lightColorHex, width, frame, logo)}
+        >
+          Download
+        </button>
+        <button
+          onClick={() => upload(slug, pageId, text, darkColorHex, lightColorHex, width, frame, logo)}
+        >
+          Upload
+        </button>
       </>
     );
   }
