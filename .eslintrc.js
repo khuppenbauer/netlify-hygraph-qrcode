@@ -8,14 +8,15 @@ module.exports = {
     'max-len': [
       'error',
       {
-        "code": 120,
-        "tabWidth": 2,
-        "ignoreComments": true,
-        "ignoreUrls": true,
-        "ignoreStrings": true,
-        "ignoreTemplateLiterals": true
-      }
-    ]
+        code: 120,
+        tabWidth: 2,
+        ignoreComments: true,
+        ignoreUrls: true,
+        ignoreStrings: true,
+        ignoreTemplateLiterals: true,
+      },
+    ],
+    'function-paren-newline': ['error', 'consistent'],
   },
   parser: '@babel/eslint-parser',
   parserOptions: {
